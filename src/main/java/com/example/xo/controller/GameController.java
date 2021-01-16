@@ -1,6 +1,9 @@
 package com.example.xo.controller;
 
+import com.example.xo.Exceptions.GameIsNotCreatedException;
+import com.example.xo.Exceptions.GameIsNotFoundException;
 import com.example.xo.model.Game;
+import com.example.xo.model.Step;
 import com.example.xo.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,26 +22,23 @@ public class GameController {
   }
 
   @GetMapping("/create")
-  public ResponseEntity createGame() {
+  public ResponseEntity createGame() throws GameIsNotCreatedException {
     Game game = gameService.createGame();
-    if (game != null) {
-      return ResponseEntity.status(HttpStatus.CREATED).body("Gamecode: " + game.getGamecode());
-    }
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Game isn't created.");
+    return ResponseEntity.status(HttpStatus.CREATED).body("Gamecode: " + game.getGamecode());
   }
 
   @GetMapping("/{gamecode}")
-  public ResponseEntity getGame(@PathVariable String gamecode) throws Exception {
+  public ResponseEntity getGame(@PathVariable String gamecode) throws GameIsNotFoundException {
     Game game = gameService.getGame(gamecode);
-    if (game != null) {
-      return ResponseEntity.status(HttpStatus.OK).body(game);
-    }
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Game with " + gamecode + " gamecode doesn't exist.");
+    return ResponseEntity.status(HttpStatus.OK).body(game);
   }
 
-  @GetMapping("/step/{gamecode}")
-  public ResponseEntity takeAStep(@PathVariable String gamecode, @RequestParam char player, @RequestParam int row, @RequestParam int column) throws Exception {
-    Game game = gameService.takeAStep(gamecode, player, row, column);
+  @GetMapping("/step")
+  public ResponseEntity takeAStep(@RequestBody Step step) throws Exception {
+    Game game = gameService.takeAStep(step);
+    if (game.getWinner() != null) {
+      return ResponseEntity.status(HttpStatus.OK).body("The winner is: " + game.getWinner());
+    }
     return ResponseEntity.status(HttpStatus.OK).body(game);
   }
 }
