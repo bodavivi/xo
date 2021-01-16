@@ -45,7 +45,8 @@ public class GameService {
   }
 
   public Game takeAStep(Step step) throws Exception {
-    if (step.getColumn() == null || step.getRow() == null || step.getGamecode() == null || step.getPlayer() == null) throw new MissingDataException();
+    if (step.getColumn() == null || step.getRow() == null || step.getGamecode() == null || step.getPlayer() == null)
+      throw new MissingDataException();
     String gamecode = step.getGamecode();
     Game game = getGame(gamecode);
     if (game == null) throw new GameIsNotFoundException(gamecode);
@@ -112,7 +113,7 @@ public class GameService {
       int actualRow = row - column;
       int actualColumn = 0;
       for (int i = actualRow; i < 5; i++) {
-        diagonalBuilder.append(rows[actualRow].charAt(i));
+        diagonalBuilder.append(rows[i].charAt(actualColumn));
         actualColumn++;
       }
     } else {
@@ -128,7 +129,6 @@ public class GameService {
 
   private boolean checkSecondDiagonal(String[] rows, int row, int column, String winner) {
     StringBuilder diagonalBuilder = new StringBuilder();
-
     if (row > column) {
       int diff = 4 - row;
       int actualRow = row + diff;
