@@ -14,6 +14,7 @@ public class Game {
   private String gameTable;
   private String gamecode;
   private char nextPlayer;
+  private Character winner;
 
   public Game() {
   }
@@ -58,5 +59,13 @@ public class Game {
 
   public void setNextPlayer(char nextPlayer) {
     this.nextPlayer = nextPlayer;
+  }
+
+  public Character getWinner() {
+    return winner;
+  }
+
+  public void setWinner(Character winner) {
+    this.winner = winner;
   }
 }
