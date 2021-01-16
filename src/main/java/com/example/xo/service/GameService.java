@@ -1,6 +1,6 @@
 package com.example.xo.service;
 
-import com.example.xo.Exceptions.*;
+import com.example.xo.exceptions.*;
 import com.example.xo.model.Game;
 import com.example.xo.model.Step;
 import com.example.xo.repository.GameRepository;

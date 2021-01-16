@@ -1,7 +1,7 @@
 package com.example.xo.controller;
 
-import com.example.xo.Exceptions.GameIsNotCreatedException;
-import com.example.xo.Exceptions.GameIsNotFoundException;
+import com.example.xo.exceptions.GameIsNotCreatedException;
+import com.example.xo.exceptions.GameIsNotFoundException;
 import com.example.xo.model.Game;
 import com.example.xo.model.Step;
 import com.example.xo.service.GameService;
