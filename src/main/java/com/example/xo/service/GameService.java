@@ -12,7 +12,7 @@ import java.util.UUID;
 @Service
 public class GameService {
 
-  private final GameRepository gameRepository;
+  private GameRepository gameRepository;
 
   @Autowired
   public GameService(GameRepository gameRepository) {
