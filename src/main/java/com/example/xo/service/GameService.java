@@ -47,6 +47,8 @@ public class GameService {
   public Game takeAStep(Step step) throws Exception {
     if (step.getColumn() == null || step.getRow() == null || step.getGamecode() == null || step.getPlayer() == null)
       throw new MissingDataException();
+    if (step.getRow() > 5 || step.getRow() < 1 || step.getColumn() > 5 || step.getColumn() < 1)
+      throw new UnavaliablePositionException(step.getRow(), step.getColumn());
     String gamecode = step.getGamecode();
     Game game = getGame(gamecode);
     if (game == null) throw new GameIsNotFoundException(gamecode);
@@ -69,7 +71,7 @@ public class GameService {
   }
 
   private void positionAvailabilityChecker(String[] rows, int row, int column) throws UnavaliablePositionException {
-    if (rows[row].charAt(column) != '-') throw new UnavaliablePositionException(row, column);
+    if (rows[row].charAt(column) != '-') throw new UnavaliablePositionException(row + 1, column + 1);
   }
 
   private void drawStep(Game game, String[] rows, int row, int column) {

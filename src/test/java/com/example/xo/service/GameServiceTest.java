@@ -73,7 +73,7 @@ class GameServiceTest {
   }
 
   @Test
-  public void takeAStep_should_throw_exception_if_step_is_not_available() throws Exception {
+  public void takeAStep_should_throw_exception_if_step_is_already_reserved() throws Exception {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
@@ -84,6 +84,74 @@ class GameServiceTest {
     step.setPlayer('x');
     step.setRow(3);
     step.setColumn(3);
+    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+      gameService.takeAStep(step);
+    });
+  }
+
+  @Test
+  public void takeAStep_should_throw_exception_if_column_is_bigger_than_5() throws Exception {
+    Game game = new Game();
+    game.setNextPlayer('x');
+    game.setGamecode("12345678");
+    game.setGameTable("----- ----- --o-- ----- -----");
+    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
+    Step step = new Step();
+    step.setGamecode("12345678");
+    step.setPlayer('x');
+    step.setRow(3);
+    step.setColumn(6);
+    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+      gameService.takeAStep(step);
+    });
+  }
+
+  @Test
+  public void takeAStep_should_throw_exception_if_row_is_bigger_than_5() throws Exception {
+    Game game = new Game();
+    game.setNextPlayer('x');
+    game.setGamecode("12345678");
+    game.setGameTable("----- ----- --o-- ----- -----");
+    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
+    Step step = new Step();
+    step.setGamecode("12345678");
+    step.setPlayer('x');
+    step.setRow(6);
+    step.setColumn(1);
+    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+      gameService.takeAStep(step);
+    });
+  }
+
+  @Test
+  public void takeAStep_should_throw_exception_if_row_is_smaller_than_1() throws Exception {
+    Game game = new Game();
+    game.setNextPlayer('x');
+    game.setGamecode("12345678");
+    game.setGameTable("----- ----- --o-- ----- -----");
+    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
+    Step step = new Step();
+    step.setGamecode("12345678");
+    step.setPlayer('x');
+    step.setRow(-2);
+    step.setColumn(1);
+    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+      gameService.takeAStep(step);
+    });
+  }
+
+  @Test
+  public void takeAStep_should_throw_exception_if_column_is_smaller_than_1() throws Exception {
+    Game game = new Game();
+    game.setNextPlayer('x');
+    game.setGamecode("12345678");
+    game.setGameTable("----- ----- --o-- ----- -----");
+    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
+    Step step = new Step();
+    step.setGamecode("12345678");
+    step.setPlayer('x');
+    step.setRow(2);
+    step.setColumn(-7);
     Assertions.assertThrows(UnavaliablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
