@@ -1,9 +1,6 @@
 package com.example.xo.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Game {
@@ -15,18 +12,25 @@ public class Game {
   private String gamecode;
   private char nextPlayer;
   private Character winner;
+  @Transient
+  private StringBuilder changeableGameTable;
 
   public Game() {
   }
 
   public Game(String gamecode) {
-    this.gameTable = "----- " +
-        "----- " +
-        "----- " +
-        "----- " +
+    this.gameTable = "-----" +
+        "-----" +
+        "-----" +
+        "-----" +
         "-----";
     this.gamecode = gamecode;
     this.nextPlayer = 'x';
+  }
+
+  @PostLoad
+  public void onload(){
+    changeableGameTable = new StringBuilder(gameTable);
   }
 
   public String getGamecode() {
@@ -67,5 +71,22 @@ public class Game {
 
   public void setWinner(Character winner) {
     this.winner = winner;
+  }
+
+  public char getAt(int row, int column) {
+    return this.gameTable.charAt(row * 5 + column);
+  }
+
+  public void setAT(int row, int column){
+    int start = (row*5) + column;
+    this.changeableGameTable.replace(start, start+1, String.valueOf(this.nextPlayer));
+  }
+
+  public void setWinnerToActualPlayer(){
+    setWinner(nextPlayer);
+  }
+
+  public void saveNewGameTable(){
+    setGameTable(changeableGameTable.toString());
   }
 }
