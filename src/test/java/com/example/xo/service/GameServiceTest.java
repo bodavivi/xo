@@ -1,6 +1,9 @@
 package com.example.xo.service;
 
-import com.example.xo.exceptions.*;
+import com.example.xo.exceptions.GameIsNotCreatedException;
+import com.example.xo.exceptions.GameIsNotFoundException;
+import com.example.xo.exceptions.MissingDataException;
+import com.example.xo.exceptions.UnavailablePositionException;
 import com.example.xo.model.Game;
 import com.example.xo.model.Step;
 import com.example.xo.repository.GameRepository;
@@ -32,42 +35,9 @@ class GameServiceTest {
     when(gameRepository.findGameByGamecode(any())).thenReturn(null);
     Step step = new Step();
     step.setGamecode("nonexist");
-    step.setPlayer('x');
     step.setRow(3);
     step.setColumn(3);
     Assertions.assertThrows(GameIsNotFoundException.class, () -> {
-      gameService.takeAStep(step);
-    });
-  }
-
-  @Test
-  public void takeAStep_should_throw_exception_if_nonplayer_try_to_take_a_step() throws Exception {
-    Game game = new Game();
-    game.setNextPlayer('x');
-    game.setGamecode("12345678");
-    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
-    Step step = new Step();
-    step.setGamecode("nonexist");
-    step.setPlayer('v');
-    step.setRow(3);
-    step.setColumn(3);
-    Assertions.assertThrows(NonexistentPlayerException.class, () -> {
-      gameService.takeAStep(step);
-    });
-  }
-
-  @Test
-  public void takeAStep_should_throw_exception_if_not_the_next_player_try_to_take_a_step() throws Exception {
-    Game game = new Game();
-    game.setNextPlayer('x');
-    game.setGamecode("12345678");
-    when(gameRepository.findGameByGamecode(any())).thenReturn(game);
-    Step step = new Step();
-    step.setGamecode("nonexist");
-    step.setPlayer('o');
-    step.setRow(3);
-    step.setColumn(3);
-    Assertions.assertThrows(NotYourTurnException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -77,14 +47,13 @@ class GameServiceTest {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
-    game.setGameTable("----- ----- --o-- ----- -----");
+    game.setGameTable("------------o------------");
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("12345678");
-    step.setPlayer('x');
-    step.setRow(3);
-    step.setColumn(3);
-    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+    step.setRow(2);
+    step.setColumn(2);
+    Assertions.assertThrows(UnavailablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -94,14 +63,13 @@ class GameServiceTest {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
-    game.setGameTable("----- ----- --o-- ----- -----");
+    game.setGameTable("------------o------------");
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("12345678");
-    step.setPlayer('x');
     step.setRow(3);
     step.setColumn(6);
-    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+    Assertions.assertThrows(UnavailablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -111,14 +79,13 @@ class GameServiceTest {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
-    game.setGameTable("----- ----- --o-- ----- -----");
+    game.setGameTable("------------o------------");
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("12345678");
-    step.setPlayer('x');
     step.setRow(6);
     step.setColumn(1);
-    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+    Assertions.assertThrows(UnavailablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -128,14 +95,13 @@ class GameServiceTest {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
-    game.setGameTable("----- ----- --o-- ----- -----");
+    game.setGameTable("------------o------------");
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("12345678");
-    step.setPlayer('x');
     step.setRow(-2);
     step.setColumn(1);
-    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+    Assertions.assertThrows(UnavailablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -145,14 +111,13 @@ class GameServiceTest {
     Game game = new Game();
     game.setNextPlayer('x');
     game.setGamecode("12345678");
-    game.setGameTable("----- ----- --o-- ----- -----");
+    game.setGameTable("------------o------------");
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("12345678");
-    step.setPlayer('x');
     step.setRow(2);
-    step.setColumn(-7);
-    Assertions.assertThrows(UnavaliablePositionException.class, () -> {
+    step.setColumn(-1);
+    Assertions.assertThrows(UnavailablePositionException.class, () -> {
       gameService.takeAStep(step);
     });
   }
@@ -160,18 +125,6 @@ class GameServiceTest {
   @Test
   public void takeAStep_should_throw_exception_if_gamecode_is_missing() throws Exception {
     Step step = new Step();
-    step.setPlayer('x');
-    step.setRow(3);
-    step.setColumn(3);
-    Assertions.assertThrows(MissingDataException.class, () -> {
-      gameService.takeAStep(step);
-    });
-  }
-
-  @Test
-  public void takeAStep_should_throw_exception_if_player_is_missing() throws Exception {
-    Step step = new Step();
-    step.setGamecode("gamecode");
     step.setRow(3);
     step.setColumn(3);
     Assertions.assertThrows(MissingDataException.class, () -> {
@@ -183,7 +136,6 @@ class GameServiceTest {
   public void takeAStep_should_throw_exception_if_column_is_missing() throws Exception {
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setPlayer('x');
     step.setRow(3);
     Assertions.assertThrows(MissingDataException.class, () -> {
       gameService.takeAStep(step);
@@ -194,7 +146,6 @@ class GameServiceTest {
   public void takeAStep_should_throw_exception_if_row_is_missing() throws Exception {
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setPlayer('x');
     step.setColumn(3);
     Assertions.assertThrows(MissingDataException.class, () -> {
       gameService.takeAStep(step);
@@ -220,7 +171,7 @@ class GameServiceTest {
   @Test
   public void createGame_should_give_back_game() throws GameIsNotCreatedException {
     Game game = new Game();
-    game.setGameTable("----- ----- ----- ----- -----");
+    game.setGameTable("-------------------------");
     game.setNextPlayer('x');
     game.setGamecode("gamecode");
     when(gameRepository.save(any())).thenReturn(game);
@@ -228,97 +179,92 @@ class GameServiceTest {
     Assertions.assertNotNull(result);
     Assertions.assertEquals(result.getGamecode(), "gamecode");
     Assertions.assertEquals(result.getNextPlayer(), 'x');
-    Assertions.assertEquals(result.getGameTable(), "----- ----- ----- ----- -----");
+    Assertions.assertEquals(result.getGameTable(), "-------------------------");
     Assertions.assertNull(result.getWinner());
   }
 
   @Test
   public void takeAStep_should_draw_step_in_the_right_place_and_change_next_player() throws Exception {
     Game game = new Game();
-    game.setGameTable("--x-- -o--- -xo-- ----x -----");
+    game.setGameTable("--x---o----xo------x-----");
     game.setNextPlayer('o');
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("gamecode");
     step.setColumn(3);
     step.setRow(2);
-    step.setPlayer('o');
     Game result = gameService.takeAStep(step);
     Assertions.assertNotNull(result);
-    Assertions.assertEquals(result.getGameTable(), "--x-- -oo-- -xo-- ----x -----");
-    Assertions.assertEquals(result.getNextPlayer(), 'x');
+    Assertions.assertEquals("--x---o----xoo-----x-----", result.getGameTable());
+    Assertions.assertEquals('x', result.getNextPlayer());
     Assertions.assertNull(result.getWinner());
   }
 
   @Test
   public void takeAStep_should_draw_step_in_the_right_place_and_change_next_player_and_change_winner_if_there_are_three_os_in_one_row() throws Exception {
     Game game = new Game();
-    game.setGameTable("--x-- -o-o- -xo-- ----x -----");
+    game.setGameTable("--x---o-o--xo------x-----");
     game.setNextPlayer('o');
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setColumn(3);
-    step.setRow(2);
-    step.setPlayer('o');
+    step.setColumn(2);
+    step.setRow(1);
     Game result = gameService.takeAStep(step);
     Assertions.assertNotNull(result);
-    Assertions.assertEquals(result.getGameTable(), "--x-- -ooo- -xo-- ----x -----");
-    Assertions.assertEquals(result.getNextPlayer(), 'x');
-    Assertions.assertEquals(result.getWinner(), 'o');
+    Assertions.assertEquals("--x---ooo--xo------x-----", result.getGameTable());
+    Assertions.assertEquals('x', result.getNextPlayer());
+    Assertions.assertEquals('o', result.getWinner());
   }
 
   @Test
   public void takeAStep_should_draw_step_in_the_right_place_and_change_next_player_and_change_winner_if_there_are_three_xs_in_one_column() throws Exception {
     Game game = new Game();
-    game.setGameTable("-xx-- --oo- -xo-o ----x -----");
+    game.setGameTable("-xx----oo--xo-o----x-----");
     game.setNextPlayer('x');
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setColumn(2);
-    step.setRow(2);
-    step.setPlayer('x');
+    step.setColumn(1);
+    step.setRow(1);
     Game result = gameService.takeAStep(step);
     Assertions.assertNotNull(result);
-    Assertions.assertEquals(result.getGameTable(), "-xx-- -xoo- -xo-o ----x -----");
-    Assertions.assertEquals(result.getNextPlayer(), 'o');
-    Assertions.assertEquals(result.getWinner(), 'x');
+    Assertions.assertEquals("-xx---xoo--xo-o----x-----", result.getGameTable());
+    Assertions.assertEquals('o', result.getNextPlayer());
+    Assertions.assertEquals('x', result.getWinner());
   }
 
   @Test
   public void takeAStep_should_draw_step_in_the_right_place_and_change_next_player_and_change_winner_if_there_are_three_xs_in_a_diagonal_when_row_is_not_bigger_than_column() throws Exception {
     Game game = new Game();
-    game.setGameTable("-xx-- ---oo --oxo ----x ----");
+    game.setGameTable("-xx-----oo--oxo----x----");
     game.setNextPlayer('x');
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setColumn(3);
-    step.setRow(2);
-    step.setPlayer('x');
+    step.setColumn(2);
+    step.setRow(1);
     Game result = gameService.takeAStep(step);
     Assertions.assertNotNull(result);
-    Assertions.assertEquals(result.getGameTable(), "-xx-- --xoo --oxo ----x ----");
-    Assertions.assertEquals(result.getNextPlayer(), 'o');
-    Assertions.assertEquals(result.getWinner(), 'x');
+    Assertions.assertEquals("-xx----xoo--oxo----x----", result.getGameTable());
+    Assertions.assertEquals('o', result.getNextPlayer());
+    Assertions.assertEquals('x', result.getWinner());
   }
 
   @Test
   public void takeAStep_should_draw_step_in_the_right_place_and_change_next_player_and_change_winner_there_are_three_os_in_a_diagonal_when_row_is_bigger_than_column() throws Exception {
     Game game = new Game();
-    game.setGameTable("-xx-- ----- ----- --o-- x--o-");
+    game.setGameTable("-xx--------------o--x--o-");
     game.setNextPlayer('o');
     when(gameRepository.findGameByGamecode(any())).thenReturn(game);
     Step step = new Step();
     step.setGamecode("gamecode");
-    step.setColumn(2);
-    step.setRow(3);
-    step.setPlayer('o');
+    step.setColumn(1);
+    step.setRow(2);
     Game result = gameService.takeAStep(step);
     Assertions.assertNotNull(result);
-    Assertions.assertEquals(result.getGameTable(), "-xx-- ----- -o--- --o-- x--o-");
-    Assertions.assertEquals(result.getNextPlayer(), 'x');
-    Assertions.assertEquals(result.getWinner(), 'o');
+    Assertions.assertEquals("-xx--------o-----o--x--o-", result.getGameTable());
+    Assertions.assertEquals('x', result.getNextPlayer());
+    Assertions.assertEquals('o', result.getWinner());
   }
 }
