@@ -5,7 +5,6 @@ public class Step {
   private String gamecode;
   private Integer row;
   private Integer column;
-  private Character player;
 
   public Step() {
   }
@@ -32,13 +31,5 @@ public class Step {
 
   public void setColumn(Integer column) {
     this.column = column;
-  }
-
-  public Character getPlayer() {
-    return player;
-  }
-
-  public void setPlayer(Character player) {
-    this.player = player;
   }
 }
