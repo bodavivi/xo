@@ -1,6 +1,9 @@
 package com.example.xo.service;
 
-import com.example.xo.exceptions.*;
+import com.example.xo.exceptions.GameIsNotCreatedException;
+import com.example.xo.exceptions.GameIsNotFoundException;
+import com.example.xo.exceptions.MissingDataException;
+import com.example.xo.exceptions.UnavailablePositionException;
 import com.example.xo.model.Game;
 import com.example.xo.model.Step;
 import com.example.xo.repository.GameRepository;
@@ -45,41 +48,27 @@ public class GameService {
   }
 
   public Game takeAStep(Step step) throws Exception {
-    if (step.getColumn() == null || step.getRow() == null || step.getGamecode() == null || step.getPlayer() == null)
+    if (step.getColumn() == null || step.getRow() == null || step.getGamecode() == null)
       throw new MissingDataException();
-    if (step.getRow() > 5 || step.getRow() < 1 || step.getColumn() > 5 || step.getColumn() < 1)
-      throw new UnavaliablePositionException(step.getRow(), step.getColumn());
+    if (step.getRow() > 4 || step.getRow() < 0 || step.getColumn() > 4 || step.getColumn() < 0)
+      throw new UnavailablePositionException(step.getRow(), step.getColumn());
     String gamecode = step.getGamecode();
     Game game = getGame(gamecode);
+    game.onload();
     if (game == null) throw new GameIsNotFoundException(gamecode);
-    char player = step.getPlayer();
-    int row = step.getRow() - 1;
-    int column = step.getColumn() - 1;
-    validateNextPlayer(game.getNextPlayer(), player);
-    String[] rows = game.getGameTable().split(" ");
-    positionAvailabilityChecker(rows, row, column);
-    drawStep(game, rows, row, column);
-    if (checkWinner(player, rows, row, column)) game.setWinner(player);
+    int row = step.getRow();
+    int column = step.getColumn();
+    positionAvailabilityChecker(game, row, column);
+    game.setAT(row, column);
+    game.saveNewGameTable();
+    if (checkWinner(game, row, column)) game.setWinnerToActualPlayer();
     game.setNextPlayer(changeNextPlayer(game.getNextPlayer()));
     gameRepository.save(game);
     return game;
   }
 
-  private void validateNextPlayer(char nextPlayer, char actualPlayer) throws Exception {
-    if (actualPlayer != 'o' && actualPlayer != 'x') throw new NonexistentPlayerException(actualPlayer);
-    if (nextPlayer != actualPlayer) throw new NotYourTurnException();
-  }
-
-  private void positionAvailabilityChecker(String[] rows, int row, int column) throws UnavaliablePositionException {
-    if (rows[row].charAt(column) != '-') throw new UnavaliablePositionException(row + 1, column + 1);
-  }
-
-  private void drawStep(Game game, String[] rows, int row, int column) {
-    String actualRow = rows[row];
-    actualRow = actualRow.substring(0, column) + game.getNextPlayer() + actualRow.substring(column + 1);
-    rows[row] = actualRow;
-    String gameTable = String.join(" ", rows);
-    game.setGameTable(gameTable);
+  private void positionAvailabilityChecker(Game game, int row, int column) throws UnavailablePositionException {
+    if (game.getAt(row, column) != '-') throw new UnavailablePositionException(row, column);
   }
 
   private char changeNextPlayer(char player) {
@@ -87,49 +76,53 @@ public class GameService {
     return 'x';
   }
 
-  private boolean checkWinner(char player, String[] rows, int row, int column) {
-    String winner = (player == 'x') ? ("xxx") : ("ooo");
-    return (checkRow(rows[row], winner)) || (checkColumn(rows, column, winner)) || (checkDiagonals(rows, row, column, winner));
+  private boolean checkWinner(Game game, int row, int column) {
+    String winner = (game.getNextPlayer() == 'x') ? ("xxx") : ("ooo");
+    return (isThereWinnerInRow(game, winner, row)) || (isThereWinnerInColumn(game, column, winner)) || (isThereWinnerInDiagonals(game, row, column, winner));
   }
 
-  private boolean checkRow(String row, String winner) {
-    return row.contains(winner);
-  }
-
-  private boolean checkColumn(String[] rows, int column, String winner) {
-    StringBuilder columnBuilder = new StringBuilder();
-    for (String row : rows) {
-      columnBuilder.append(row.charAt(column));
+  private boolean isThereWinnerInRow(Game game, String winner, int row) {
+    StringBuilder actualRow = new StringBuilder();
+    for (int i = 0; i < 5; i++) {
+      actualRow.append(game.getAt(row, i));
     }
-    return columnBuilder.toString().contains(winner);
+    return actualRow.toString().contains(winner);
   }
 
-  private boolean checkDiagonals(String[] rows, int row, int column, String winner) {
-    if (checkFirstDiagonal(rows, row, column, winner)) return true;
-    return checkSecondDiagonal(rows, row, column, winner);
+  private boolean isThereWinnerInColumn(Game game, int column, String winner) {
+    StringBuilder actualColumn = new StringBuilder();
+    for (int i = 0; i < 5; i++) {
+      actualColumn.append(game.getAt(i, column));
+    }
+    return actualColumn.toString().contains(winner);
   }
 
-  private boolean checkFirstDiagonal(String[] rows, int row, int column, String winner) {
-    StringBuilder diagonalBuilder = new StringBuilder();
+  private boolean isThereWinnerInDiagonals(Game game, int row, int column, String winner) {
+    if (isThereWinnerInTheFirstDiagonal(game, row, column, winner)) return true;
+    return isThereWinnerInTheSecondDiagonal(game, row, column, winner);
+  }
+
+  private boolean isThereWinnerInTheFirstDiagonal(Game game, int row, int column, String winner) {
+    StringBuilder actualDiagonal = new StringBuilder();
     if (row > column) {
       int actualRow = row - column;
       int actualColumn = 0;
       for (int i = actualRow; i < 5; i++) {
-        diagonalBuilder.append(rows[i].charAt(actualColumn));
+        actualDiagonal.append(game.getAt(i, actualColumn));
         actualColumn++;
       }
     } else {
       int actualColumn = column - row;
       int actualRow = 0;
       for (int i = actualColumn; i < 5; i++) {
-        diagonalBuilder.append(rows[actualRow].charAt(i));
+        actualDiagonal.append(game.getAt(actualRow, i));
         actualRow++;
       }
     }
-    return diagonalBuilder.toString().contains(winner);
+    return actualDiagonal.toString().contains(winner);
   }
 
-  private boolean checkSecondDiagonal(String[] rows, int row, int column, String winner) {
+  private boolean isThereWinnerInTheSecondDiagonal(Game game, int row, int column, String winner) {
     StringBuilder diagonalBuilder = new StringBuilder();
     if (row > column) {
       int diff = 4 - row;
@@ -137,7 +130,7 @@ public class GameService {
       int actualColumn = column - diff;
       while (actualRow >= 0 || actualColumn < 5) {
         if (actualColumn >= 0 && actualColumn < 5 && actualRow >= 0 && actualRow < 5) {
-          diagonalBuilder.append(rows[actualRow].charAt(actualColumn));
+          diagonalBuilder.append(game.getAt(actualRow, actualColumn));
         }
         actualRow--;
         actualColumn++;
@@ -148,7 +141,7 @@ public class GameService {
       int actualRow = row - diff;
       while (actualColumn >= 0 || actualRow < 5) {
         if (actualColumn >= 0 && actualColumn < 5 && actualRow >= 0 && actualRow < 5) {
-          diagonalBuilder.append(rows[actualRow].charAt(actualColumn));
+          diagonalBuilder.append(game.getAt(actualRow, actualColumn));
         }
         actualColumn--;
         actualRow++;
