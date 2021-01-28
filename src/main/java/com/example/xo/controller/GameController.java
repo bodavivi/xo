@@ -21,7 +21,7 @@ public class GameController {
     this.gameService = gameService;
   }
 
-  @GetMapping("/create")
+  @PostMapping("/create")
   public ResponseEntity createGame() throws GameIsNotCreatedException {
     Game game = gameService.createGame();
     return ResponseEntity.status(HttpStatus.CREATED).body("Gamecode: " + game.getGamecode());
@@ -33,7 +33,7 @@ public class GameController {
     return ResponseEntity.status(HttpStatus.OK).body(game);
   }
 
-  @GetMapping("/step")
+  @PostMapping("/step")
   public ResponseEntity takeAStep(@RequestBody Step step) throws Exception {
     Game game = gameService.takeAStep(step);
     if (game.getWinner() != null) {
